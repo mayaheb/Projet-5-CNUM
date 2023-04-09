@@ -15,10 +15,13 @@ library(devtools)#package pour réaliser des fonctions simples sur R
 #puis enregistrer les bases de données excel en format .csv en cochant "cellules délimitées par des " '
 
 #Importation de la bases de données contenant les informations sur les articles 
-bdd_brut <- read.table("bdd_demo.csv", sep = ";", header = TRUE)
+bdd_brut1 <- read.table('savedrecs (2)_.csv', sep = ";", header = TRUE)
+bdd_brut2 <- read.table('savedrecs (3).csv', sep = ";", header = TRUE)
+bdd_brut3 <- read.table('savedrecs (4).csv', sep = ";", header = TRUE)
 
-# fusion des documents .csv obtenus par extraction des articles sur WoS
-#bdd_brut <- rbind.data.frame(`savedrecs.(2)`, `savedrecs.(3)`, `savedrecs.(4)`)
+#fusion des documents .csv obtenus par extraction des articles sur WoS
+bdd_brut <- rbind.data.frame(bdd_brut1, bdd_brut2, bdd_brut3)
+
 
 #Récupérer unniquement les 2 colonnes qui nous intéressent dans la base de données importée depuis WoS
 bdd <- data.frame(bdd_brut$Cited.References, bdd_brut$DOI)
