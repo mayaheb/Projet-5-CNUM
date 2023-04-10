@@ -7,3 +7,5 @@ La constitution du réseau permet de calculer les degrés de chaque articles, c'
 Cela permet d'identifier les 5 articles les plus cités de la base de donnée étudiée, qui peuvent constituer les articles à consulter en premier dans la bibliographie du sujet.
 
 Le répertoire de travail contient les 3 bases de données (concaténées dans le script) utilisées pour le projet. 
+
+P.S : la branche "master" contient le script envoyé depuis git bash.
