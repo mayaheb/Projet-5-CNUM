@@ -14,20 +14,23 @@ library(devtools)#package pour réaliser des fonctions simples sur R
 #exporter en format "Excel" en choisissant d'exporter les DOI des articles et les "Cited References"
 #puis enregistrer les bases de données excel en format .csv en cochant "cellules délimitées par des " '
 
-#Importation de la (ou les) bases de données des infos sur les articles 
-bdd_brut <- read.table("bdd_demo.csv", sep = ";", header = TRUE)
+#Importation de la bases de données contenant les informations sur les articles 
+bdd_brut1 <- read.table('savedrecs (2)_.csv', sep = ";", header = TRUE)
+bdd_brut2 <- read.table('savedrecs (3).csv', sep = ";", header = TRUE)
+bdd_brut3 <- read.table('savedrecs (4).csv', sep = ";", header = TRUE)
 
-# fusion des documents .csv obtenus par extraction des articles sur WoS
-#bdd_brut <- rbind.data.frame(`savedrecs.(2)`, `savedrecs.(3)`, `savedrecs.(4)`)
+#fusion des documents .csv obtenus par extraction des articles sur WoS
+bdd_brut <- rbind.data.frame(bdd_brut1, bdd_brut2, bdd_brut3)
 
+#Récupérer unniquement les 2 colonnes qui nous intéressent dans la base de données importée depuis WoS
 bdd <- data.frame(bdd_brut$Cited.References, bdd_brut$DOI)
 
-# trier pour virer les articles sans auteurs avant de rentrer dans la boucle for
+# trier pour retirer de la bdd les articles sans auteurs 
 
 bdd<- drop_na(bdd)
 
 
-#constitution d'une edge list avec une ligne = 1 auteur et 1 article
+#constitution d'une edge list avec une ligne = 1 article citant et 1 article cité dans les sources du citant
 nombre_articles_citants <- nrow(bdd)
 
 for (i in 1:nombre_articles_citants){
@@ -46,11 +49,11 @@ View(citant_cite)
 
 nombre_articles2 = nrow(citant_cite)
 
-#test
+#test d'extraction de texte 
 s="Zoupa M, 2017, INT J MOL SCI, V18, DOI 10.3390/ijms18040817"
 str_extract(s, pattern = "DOI (\\d+)\\.(\\d+)/(\\X+)")
 
-#boucle 
+
 for (i in 1:nombre_articles2){
   citant_cite$cites[i]<- str_extract(citant_cite$cites[i], pattern = "DOI (\\d+)\\.(\\d+)/(\\X+)")
 }
@@ -58,7 +61,7 @@ for (i in 1:nombre_articles2){
 citant_cite<- drop_na(citant_cite)
 View(citant_cite)
 
-#Enlever les trois lettres "DOI" dans la colonne des cités :
+#Enlever les trois lettres "DOI" dans la colonne des articles cités :
 
 nombre_lignes_3 <- nrow(citant_cite)
 
@@ -77,7 +80,7 @@ nrow(citant_cite_final)
 #création du réseau 1 :
 g <- graph_from_data_frame(citant_cite_final, directed = FALSE)
 
-#OU création du réseau 2 :
+#test d'affiches de réseaux non aboutis : 
 
 #nodes <- data.frame(citant_cite_final$cites)
 #edges <- data.frame(from = citant_cite_final$citant, to = citant_cite_final$cites)
@@ -106,7 +109,7 @@ plot(g,
      edge.color="red",edge.width=0,1, edge.arrow.size = 0.01, margin = 0, layout = layout_nicely(g))
 
 
-# calcul des degrés :
+# calcul des degrés de chaque noeuds (=article) :
 
 
 degres_reseau<- degree(
@@ -121,6 +124,8 @@ degres_reseau<- degree(
 print(degres_reseau)
 degres_reseau[1]
 max(degres_reseau)
+
+#Classement des articles par ordre de degré décroissant
 degres_reseau_trie <- sort(degres_reseau, decreasing = TRUE)
 View(degres_reseau_trie)
 
@@ -138,9 +143,7 @@ ID_noeuds_enleves
 
 g<- delete_vertices(g, ID_noeuds_enleves[[]])
 
-
-E(g)
-
+#Retirer les egdes (liens) : non abouti
 #g <- delete.edges(g, ID_noeuds_enleves[[]])
 
 #Affichage du réseau "allégé" :
@@ -149,6 +152,6 @@ plot(g,
      edge.color="red", edge.arrow.size = 0.01, margin = 0,1, layout = layout_nicely(g))
 
 
-#VisNetwork visualisation
+#visualisation avec VisNetwork 
 
 visIgraph(g)
