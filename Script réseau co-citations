@@ -137,7 +137,7 @@ ID_noeuds_enleves = list()
 length(degres_reseau_list)
 
 
-for(i in 1:length(degres_reseau_list)){if (degres_reseau_list[i]<200){ID_noeuds_enleves <- c(ID_noeuds_enleves, names(degres_reseau_list)[i])}}
+for(i in 1:length(degres_reseau_list)){if (degres_reseau_list[i]<100){ID_noeuds_enleves <- c(ID_noeuds_enleves, names(degres_reseau_list)[i])}}
 
 citant_cite_final2 <- citant_cite_final[!(citant_cite_final$cites %in% ID_noeuds_enleves),]
 
