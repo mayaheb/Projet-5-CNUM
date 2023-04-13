@@ -66,7 +66,7 @@ View(citant_cite)
 
 nombre_lignes_3 <- nrow(citant_cite)
 
-for (i in 1:nombre_articles2){
+for (i in 1:nombre_lignes_3){
   citant_cite$cites[i]<- str_extract(citant_cite$cites[i], pattern = "(\\d+)\\.(\\d+)/(\\X+)")
 }
 View(citant_cite)
