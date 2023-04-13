@@ -14,6 +14,8 @@ library(devtools)#package pour réaliser des fonctions simples sur R
 #exporter en format "Excel" en choisissant d'exporter les DOI des articles et les "Cited References"
 #puis enregistrer les bases de données excel en format .csv en cochant "cellules délimitées par des " '
 
+# sélectionner le répertoire qui contient ce fichier comme répertoire de travail
+
 #Importation de la bases de données contenant les informations sur les articles 
 bdd_brut1 <- read.table('savedrecs (2)_.csv', sep = ";", header = TRUE)
 bdd_brut2 <- read.table('savedrecs (3).csv', sep = ";", header = TRUE)
@@ -22,40 +24,40 @@ bdd_brut3 <- read.table('savedrecs (4).csv', sep = ";", header = TRUE)
 #fusion des documents .csv obtenus par extraction des articles sur WoS
 bdd_brut <- rbind.data.frame(bdd_brut1, bdd_brut2, bdd_brut3)
 
-
 #Récupérer unniquement les 2 colonnes qui nous intéressent dans la base de données importée depuis WoS
 bdd <- data.frame(bdd_brut$Cited.References, bdd_brut$DOI)
 
 # trier pour retirer de la bdd les articles sans auteurs 
-
 bdd<- drop_na(bdd)
 
+# nombre d'articles dans la BDD
+nombre_articles_citants <- nrow(bdd)
+cat('Nombre d\'articles :',nombre_articles_citants,'\n')
 
 #constitution d'une edge list avec une ligne = 1 article citant et 1 article cité dans les sources du citant
-nombre_articles_citants <- nrow(bdd)
-
+#rq : R crée un nouvle objet citant_cite à chaque itération ce qui prend du temps
+# on pourrait accélérer cette opération en créant la table citant_cite avant la boucle puis en la complétant dans la boucle
+citant_cite=NULL
 for (i in 1:nombre_articles_citants){
-  
+  if(i%%100==0){cat(i,'/',nombre_articles_citants,'\n')}
   cites <- str_split(bdd$bdd_brut.Cited.References[i], "; ")
   citant_cite = rbind(citant_cite, data.frame(cites = cites[[1]] , citant = bdd$bdd_brut.DOI[i]))
-  
 }
-
-View(cites)
-
+#View(cites)
 View(citant_cite)
 
-# création d'un objet edge_list avec en première colonne les DOI des articles cites 
-#et en deuxième colonne les DOI des citants :
-
+# nombre de citations dans la BDD
 nombre_articles2 = nrow(citant_cite)
+cat('Nombre de citations :',nombre_articles2,'\n')
 
 #test d'extraction de texte 
 s="Zoupa M, 2017, INT J MOL SCI, V18, DOI 10.3390/ijms18040817"
 str_extract(s, pattern = "DOI (\\d+)\\.(\\d+)/(\\X+)")
 
-
+# création d'un objet edge_list avec en première colonne les DOI des articles cites 
+#et en deuxième colonne les DOI des citants :
 for (i in 1:nombre_articles2){
+  if(i%%100==0){cat(i,'/',nombre_articles2,'\n')}
   citant_cite$cites[i]<- str_extract(citant_cite$cites[i], pattern = "DOI (\\d+)\\.(\\d+)/(\\X+)")
 }
 
@@ -63,20 +65,17 @@ citant_cite<- drop_na(citant_cite)
 View(citant_cite)
 
 #Enlever les trois lettres "DOI" dans la colonne des articles cités :
-
 nombre_lignes_3 <- nrow(citant_cite)
-
 for (i in 1:nombre_articles2){
+  if(i%%100==0){cat(i,'/',nombre_articles2,'\n')}
   citant_cite$cites[i]<- str_extract(citant_cite$cites[i], pattern = "(\\d+)\\.(\\d+)/(\\X+)")
 }
 View(citant_cite)
 
 #création d'un nouvel objet en enlevant les articles qui ne sont pas cités :
-
 nrow(citant_cite)
 citant_cite_final <- citant_cite[citant_cite[,2] %in% unique(citant_cite[,1]),]
 nrow(citant_cite_final)
-
 
 #création du réseau 1 :
 g <- graph_from_data_frame(citant_cite_final, directed = FALSE)
@@ -105,14 +104,12 @@ g <- graph_from_data_frame(citant_cite_final, directed = FALSE)
 
 
 #Affichage du réseau : 
-plot(g,
-     vertex.color="#0000FF25", vertex.label=NA , vertex.size=4,
-     edge.color="red",edge.width=0,1, edge.arrow.size = 0.01, margin = 0, layout = layout_nicely(g))
-
+x11()
+#plot(g,
+#     vertex.color="#0000FF25", vertex.label=NA , vertex.size=4,
+#     edge.color="red",edge.width=0,1, edge.arrow.size = 0.01, margin = 0, layout = layout_nicely(g))
 
 # calcul des degrés de chaque noeuds (=article) :
-
-
 degres_reseau<- degree(
   g,
   v = V(g),
@@ -120,8 +117,6 @@ degres_reseau<- degree(
   loops = TRUE,
   normalized = FALSE
 )
-
-
 print(degres_reseau)
 degres_reseau[1]
 max(degres_reseau)
@@ -135,24 +130,18 @@ degres_reseau_list <- as.list(degres_reseau)
 print(degres_reseau_list)
 ID_noeuds_enleves = list()
 length(degres_reseau_list)
-
-
-for(i in 1:length(degres_reseau_list)){if (degres_reseau_list[i]<100){ID_noeuds_enleves <- c(ID_noeuds_enleves, names(degres_reseau_list)[i])}}
-
+for(i in 1:length(degres_reseau_list)){
+  if (degres_reseau_list[i]<100){
+    ID_noeuds_enleves <- c(ID_noeuds_enleves, names(degres_reseau_list)[i])
+  }
+}
 citant_cite_final2 <- citant_cite_final[!(citant_cite_final$cites %in% ID_noeuds_enleves),]
-
-
 g <- graph_from_data_frame(citant_cite_final2, directed = FALSE)
-
-
-
 
 #Affichage du réseau "allégé" :
 plot(g,
      vertex.color="#0000FF25", vertex.label= NA , vertex.size=3,
      edge.color="red", edge.arrow.size = 0.01, margin = 0,1, layout = layout_nicely(g))
 
-
 #visualisation avec VisNetwork 
-
 visIgraph(g)
