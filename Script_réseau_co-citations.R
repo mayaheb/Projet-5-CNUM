@@ -66,8 +66,8 @@ View(citant_cite)
 
 #Enlever les trois lettres "DOI" dans la colonne des articles cités :
 nombre_lignes_3 <- nrow(citant_cite)
-for (i in 1:nombre_articles2){
-  if(i%%100==0){cat(i,'/',nombre_articles2,'\n')}
+for (i in 1:nombre_lignes_3){
+  if(i%%100==0){cat(i,'/',nombre_lignes_3,'\n')}
   citant_cite$cites[i]<- str_extract(citant_cite$cites[i], pattern = "(\\d+)\\.(\\d+)/(\\X+)")
 }
 View(citant_cite)
