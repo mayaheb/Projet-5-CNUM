@@ -137,15 +137,15 @@ ID_noeuds_enleves = list()
 length(degres_reseau_list)
 
 
-for(i in 1:length(degres_reseau_list)){if (degres_reseau_list[i]<600){ID_noeuds_enleves <- c(ID_noeuds_enleves, names(degres_reseau_list)[i])}}
+for(i in 1:length(degres_reseau_list)){if (degres_reseau_list[i]<200){ID_noeuds_enleves <- c(ID_noeuds_enleves, names(degres_reseau_list)[i])}}
 
-V(g)
-ID_noeuds_enleves
+citant_cite_final2 <- citant_cite_final[!(citant_cite_final$cites %in% ID_noeuds_enleves),]
 
-g<- delete_vertices(g, ID_noeuds_enleves[[]])
 
-#Retirer les egdes (liens) : non abouti
-#g <- delete.edges(g, ID_noeuds_enleves[[]])
+g <- graph_from_data_frame(citant_cite_final2, directed = FALSE)
+
+
+
 
 #Affichage du réseau "allégé" :
 plot(g,
